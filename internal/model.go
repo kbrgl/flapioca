@@ -58,6 +58,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.Keys.Quit):
+			fmt.Println()
 			return m, tea.Quit
 
 		case key.Matches(msg, m.Keys.Up):
