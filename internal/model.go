@@ -13,62 +13,33 @@ import (
 
 type TickMsg time.Time
 
-type ObstacleList []*Obstacle
-
-func NewObstacleList(obstacles ...*Obstacle) ObstacleList {
-	return ObstacleList(obstacles)
-}
-
-func (ol *ObstacleList) Remove() {
-	(*ol)[0] = nil
-	*ol = (*ol)[1:]
-}
-
-func (ol *ObstacleList) Add(obst *Obstacle) {
-	*ol = append(*ol, obst)
-}
-
-func (ol ObstacleList) Index(i int) *Obstacle {
-	if i < 0 || i >= len(ol) {
-		return nil
-	}
-	return (ol)[i]
-}
-
-func (ol ObstacleList) Rightmost() *Obstacle {
-	if len(ol) == 0 {
-		return nil
-	}
-	return (ol)[len(ol)-1]
-}
-
 type Model struct {
-	keys      KeyMap
-	obstacles ObstacleList
-	cursor    Location
-	score     int
-	help      help.Model
-	viewport  Location
-	over      bool
-	pressed   bool
+	Keys      KeyMap
+	Obstacles Obstacles
+	Cursor    Location
+	Score     int
+	Help      help.Model
+	Viewport  Location
+	Over      bool
+	Pressed   bool
 }
 
 func NewModel() Model {
 	viewport := Location{
-		x: 60,
-		y: 9,
+		X: 60,
+		Y: 9,
 	}
 	return Model{
-		keys: KeyMap{
+		Keys: KeyMap{
 			Up:   key.NewBinding(key.WithKeys("k", "up", " ", "w"), key.WithHelp("↑/k/w/space", "jump")),
 			Quit: key.NewBinding(key.WithKeys("q", "ctrl+c"), key.WithHelp("q/ctrl+c", "quit")),
 		},
-		obstacles: NewObstacleList(NewObstacle(2, &Location{viewport.x / 2, viewport.y / 2})),
-		cursor:    Location{4, viewport.y / 2},
-		score:     0,
-		help:      help.New(),
-		over:      false,
-		viewport:  viewport,
+		Obstacles: NewObstacles(NewObstacle(2, &Location{viewport.X / 2, viewport.Y / 2})),
+		Cursor:    Location{4, viewport.Y / 2},
+		Score:     0,
+		Help:      help.New(),
+		Over:      false,
+		Viewport:  viewport,
 	}
 }
 
@@ -86,60 +57,60 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.keys.Quit):
+		case key.Matches(msg, m.Keys.Quit):
 			return m, tea.Quit
 
-		case key.Matches(msg, m.keys.Up):
-			if !m.pressed && m.cursor.y > 0 {
-				m.cursor.y--
+		case key.Matches(msg, m.Keys.Up):
+			if !m.Pressed && m.Cursor.Y > 0 {
+				m.Cursor.Y--
 			}
 			// Disable the key until the next tick.
 			// Since the view does not update in real time, this prevents
 			// hidden states in the game that are invisible to the user.
-			m.pressed = true
+			m.Pressed = true
 		}
 	case tea.WindowSizeMsg:
 		// Terminal resized.
-		m.help.Width = msg.Width
+		m.Help.Width = msg.Width
 	case TickMsg:
-		if !m.pressed {
-			m.cursor.y++
+		if !m.Pressed {
+			m.Cursor.Y++
 		}
-		m.pressed = false
-		for _, obst := range m.obstacles {
-			if (obst.Collides(m.cursor)) || m.cursor.y >= m.viewport.y {
-				m.over = true
+		m.Pressed = false
+		for _, obst := range m.Obstacles {
+			if (obst.Collides(m.Cursor)) || m.Cursor.Y >= m.Viewport.Y {
+				m.Over = true
 				return m, tea.Quit
 			}
-			if obst.Location.x == m.cursor.x {
-				m.score++
-			} else if obst.Location.x < 0 {
-				m.obstacles.Remove()
+			if obst.Location.X == m.Cursor.X {
+				m.Score++
+			} else if obst.Location.X < 0 {
+				m.Obstacles.Remove()
 			}
-			obst.Location.x--
+			obst.Location.X--
 		}
-		rightmost := m.obstacles.Rightmost()
+		rightmost := m.Obstacles.Rightmost()
 		if rightmost == nil {
 			return m, tea.Quit
 		}
 		// Create a new obstacle some percent of the time.
-		gap := m.viewport.x - rightmost.Location.x
+		gap := m.Viewport.X - rightmost.Location.X
 		if gap > 5 || (rand.Intn(100) > 90 && gap > 2) {
 			// Select a y that makes the obstacle possible to avoid.
-			x := m.viewport.x
+			x := m.Viewport.X
 			var y int
-			yDelta := rand.Intn(x - rightmost.Location.x)
+			yDelta := rand.Intn(x - rightmost.Location.X)
 			if rand.Intn(100) > 50 {
-				y = rightmost.Location.y + yDelta
+				y = rightmost.Location.Y + yDelta
 			} else {
-				y = rightmost.Location.y - yDelta
+				y = rightmost.Location.Y - yDelta
 			}
 			if y < 0 {
 				y = 0
-			} else if y >= m.viewport.y {
-				y = m.viewport.y - 1
+			} else if y >= m.Viewport.Y {
+				y = m.Viewport.Y - 1
 			}
-			m.obstacles.Add(NewObstacle(2, &Location{x, y}))
+			m.Obstacles.Add(NewObstacle(2, &Location{x, y}))
 		}
 		return m, m.tick()
 	}
@@ -151,24 +122,24 @@ func (m Model) View() string {
 	sb.WriteString(TitleStyle.Render("Flapioca"))
 	sb.WriteByte('\n')
 
-	viewport := make([]string, 0, m.viewport.y)
-	for y := 0; y < m.viewport.y; y++ {
+	viewport := make([]string, 0, m.Viewport.Y)
+	for y := 0; y < m.Viewport.Y; y++ {
 		var line strings.Builder
 		// Store the index of the leftmost obstacle encountered.
 		// This is used to slice the obstacle list to avoid checking obstacles
 		// we've already seen.
 		leftmost := 0
-		for x := 0; x < m.viewport.x; x++ {
+		for x := 0; x < m.Viewport.X; x++ {
 			// Check if any obstacles collide with this cell.
 			cellValue := ' '
-			for _, o := range m.obstacles[leftmost:] {
+			for _, o := range m.Obstacles[leftmost:] {
 				if o.Collides(Location{x, y}) {
 					cellValue = '#'
 					leftmost++
 					break
 				}
 			}
-			if m.cursor.x == x && m.cursor.y == y {
+			if m.Cursor.X == x && m.Cursor.Y == y {
 				if cellValue == '#' {
 					cellValue = '@'
 				} else {
@@ -181,10 +152,10 @@ func (m Model) View() string {
 	}
 
 	sb.WriteString(ViewportStyle.Render(strings.Join(viewport, "\n")))
-	sb.WriteString(fmt.Sprintf("\n%d point(s) ", m.score))
-	sb.WriteString(m.help.View(m.keys))
+	sb.WriteString(fmt.Sprintf("\n%d point(s) ", m.Score))
+	sb.WriteString(m.Help.View(m.Keys))
 
-	if m.over {
+	if m.Over {
 		sb.WriteString(GameOverStyle.Render("\n\n> Game over! <"))
 	}
 

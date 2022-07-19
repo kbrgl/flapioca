@@ -13,8 +13,8 @@ func NewObstacle(aperture int, l *Location) *Obstacle {
 }
 
 func (o *Obstacle) Collides(l Location) bool {
-	sameColumn := o.x == l.x
+	sameColumn := o.X == l.X
 	radius := o.Aperture / 2
-	inAperture := abs(o.y-l.y) <= radius
+	inAperture := abs(o.Y-l.Y) <= radius
 	return sameColumn && !inAperture
 }

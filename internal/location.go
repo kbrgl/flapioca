@@ -1,5 +1,5 @@
 package internal
 
 type Location struct {
-	x, y int
+	X, Y int
 }
