@@ -2,13 +2,15 @@ module github.com/kbrgl/flapioca
 
 go 1.18
 
-require github.com/charmbracelet/bubbletea v0.22.0
+require (
+	github.com/charmbracelet/bubbletea v0.22.0
+	github.com/gliderlabs/ssh v0.3.4
+)
 
 require (
 	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be // indirect
 	github.com/caarlos0/sshmarshal v0.1.0 // indirect
 	github.com/charmbracelet/keygen v0.3.0 // indirect
-	github.com/gliderlabs/ssh v0.3.4 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	golang.org/x/crypto v0.0.0-20220307211146-efcb8507fb70 // indirect
 )
