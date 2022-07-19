@@ -1,6 +1,8 @@
 package internal
 
 type Obstacle struct {
+	// Aperture is the size of the opening in the obstacle.
+	// Must be odd. Even values will be rounded up to the next odd value.
 	Aperture int
 	*Location
 }
