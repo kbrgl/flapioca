@@ -167,11 +167,7 @@ func (m Model) View() string {
 				}
 			}
 			if m.Cursor.X == x && m.Cursor.Y == y {
-				if cellValue == '#' {
-					cellValue = '@'
-				} else {
-					cellValue = '*'
-				}
+				cellValue = '*'
 			}
 			line.WriteRune(cellValue)
 		}
