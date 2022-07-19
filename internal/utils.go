@@ -1,7 +1,7 @@
 package internal
 
 const (
-	ApertureSize = 3
+	DefaultAperture = 3
 )
 
 func abs(a int) int {

@@ -83,9 +83,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if !m.Layouted {
 			m.Layouted = true
 			m.Help.Width = msg.Width
-			m.Viewport.X = msg.Width - ViewportStyle.GetHorizontalBorderSize()
-			m.Viewport.Y = msg.Height - ViewportStyle.GetVerticalBorderSize() - 5
-			m.Cursor = Location{5, m.Viewport.Y / 2}
+			m.Viewport.X = 60
+			m.Viewport.Y = 9
+			m.Cursor = Location{2, 0}
 		}
 	case TickMsg:
 		return m.Frame()
@@ -98,43 +98,48 @@ func (m Model) Frame() (tea.Model, tea.Cmd) {
 		m.Cursor.Y++
 	}
 	m.Pressed = false
+
 	for _, obst := range m.Obstacles {
+		// Shift the obstacle left.
+		obst.Location.X--
+		// Check if the player has lost.
 		if (obst.Collides(m.Cursor)) || m.Cursor.Y >= m.Viewport.Y {
 			m.Over = true
 			return m, tea.Quit
 		}
 		if obst.Location.X == m.Cursor.X {
+			// Check if the player has earned a point.
 			m.Score++
 		} else if obst.Location.X < 0 {
+			// Clean up the obstacle if it has left the viewport.
 			m.Obstacles.Remove()
 		}
-		obst.Location.X--
 	}
+
 	var rightmost *Location
 	if len(m.Obstacles) > 0 {
 		rightmost = m.Obstacles[len(m.Obstacles)-1].Location
 	} else {
 		rightmost = &Location{0, m.Viewport.Y / 2}
 	}
-
-	// Create a new obstacle in some situations.
 	gap := m.Viewport.X - rightmost.X
 	if gap > 5 || (rand.Intn(100) > 90 && gap > 2) {
-		// Select a y that makes the obstacle possible to avoid.
 		x := m.Viewport.X
+		// Select a y that makes the obstacle possible to avoid.
 		var y int
-		yDelta := rand.Intn(x - rightmost.X)
-		if rand.Intn(100) > 50 {
-			y = rightmost.Y + yDelta
-		} else {
-			y = rightmost.Y - yDelta
+		for {
+			y = rand.Intn(m.Viewport.Y)
+			if abs(y-rightmost.Y) < gap {
+				break
+			}
 		}
+		// Clamp y to the viewport.
 		if y < 0 {
 			y = 0
 		} else if y >= m.Viewport.Y {
 			y = m.Viewport.Y - 1
 		}
-		m.Obstacles.Add(NewObstacle(ApertureSize, &Location{x, y}))
+		m.Obstacles.Add(NewObstacle(DefaultAperture, &Location{x, y}))
 	}
 	return m, m.tick()
 }
