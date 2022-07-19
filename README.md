@@ -1,5 +1,7 @@
 # Flapioca
 
+> *Flapioca, like tapioca.*
+
 ![](./assets/screenshot.png)
 
 A Flappy Bird-inspired terminal game. Built on [Bubble Tea](https://github.com/charmbracelet/bubbletea).
