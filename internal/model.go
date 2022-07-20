@@ -52,7 +52,7 @@ func NewModel() Model {
 }
 
 func (m Model) tick() tea.Cmd {
-	return tea.Tick(time.Second/4, func(t time.Time) tea.Msg {
+	return tea.Tick(time.Second/5, func(t time.Time) tea.Msg {
 		return TickMsg(t)
 	})
 }
